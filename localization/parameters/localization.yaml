@@ -1,0 +1,25 @@
+##### paths and topics
+map_topic: '/map' #string
+scan_topic: '/scan' #string
+odometry_topic: '/thymio_driver/odometry' #string
+particles_topic: '/localization/particles' #string
+local_map_topic: '/localization/local_map' #string
+odometry2_topic: '/localization/odometry' #string
+flag_topic: '/localization/flag' #string
+start_topic: '/localization/start' #string
+new_odometry_topic: '/new_odometry' #string
+
+##### node
+spin_frequency: 10 #double
+
+##### localization
+number_of_particles: 1600 #int
+number_of_randomly_replaced_particles: 0 #int
+particles_spreading_threshold: 0.1 #double
+particles_spreading_counter: 100 #int
+
+##### motion update
+alpha1: 0.005 #double
+alpha2: 2.0 #double
+alpha3: 0.5 #double
+alpha4: 0.0001 #double

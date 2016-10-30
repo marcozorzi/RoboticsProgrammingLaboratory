@@ -1,0 +1,117 @@
+README Assignment 2 - APP
+
+
+
+-- Functionality
+
+This application implements a set of 3 tasks for a Thymio Robot which are the following:
+1) planning a path from a given map and a start and goal location.
+2) follow the map towards the goal
+3) avoid unknown obstacles in the way.
+
+the starting and the goal point are given in the global reference frame. The application begins by loading the map and creating a graph related to the map. Each nodes will have an edge with its neighboursonly if the neighborgh is a position which can be occupied. In cas of an obstacle, the node will not be connected. Then, we use graph search algorithms to find a path between two nodes: this search is done with the A* (A star) algorithm. Then, the path is published as a series of points which are sequentially used as goal positions by the robot. Whil trying to follow the path, the robot also avoids the obstacles that are not present in the map.
+
+-- Usage
+
+1) Connect the robot by USB
+2) Start ROS in your terminal. The required command is:
+   
+   roslaunch thymio_navigation_driver aseba_thymio.launch
+
+3) Start up Eiffel Studio by the following terminal command:
+   
+   ec -gui
+
+4) In the pop up window (alternatively select File/Open) select "add Project" and navigate to /   roboscoop/thymio_app/thymio_app.ecf and click "OK". The project loads in Eiffel Studio.
+
+5) Adjust parameters in files inside teh folder
+
+	roboscoop/thymio_app/parameter_files
+
+6) Save the files edited
+7) Select "Finalize" from the compiler menu.
+8) Click "Run"
+9) The robot will compute the path and then drive to the desired goal position avoiding obstacles adn following the ath.
+10) To stop the application press "Stop" in Eiffelstudio.
+10.1) If the application should not run correctly kill the ROS-Terminal and try again after resetting the robot.
+
+
+-- File/directory structure
+In the same folder, please find the png file named "Code structure.png", this will help the understanding of the logic behind the code.
+
+In the roboscoop directory:
+* roboscoop_lib - Library for the THYMIO II robot
+* roboscoop_ros - ROS Library
+* thymio_app: Contains all specific files for the APP
+
+In the roboscoop/thymio_app directory:
+FOLDERS
+* /actuator - Classes to control the robots different actuators
+* /communication - Class to connect Thymio to ROS and for internal and external communications
+* /controllers - Classes to control the robots position
+* /graph_models - Classes of behaviors implemented in this project. To each behavior belongs a signaler for specific states of the behavior.
+* /graph/graph_search - Classes to control the robots position
+* /graph/graph_models/connectivity_strategies - Specifies all routine details to move the robot to the goal position. Maps the sensor values to the appropiate PID controllers. In charge of the robots behavior when no obstacle detected.
+* /parameters: contains the parameters to pass
+* /parsers: parsers for classes of different objects
+* /tasks - Specifies all routine details to make the robot avoid and follow outlines of obstacles. Decides which routine should be started when near an obstacle. It contains all possible behaviors the robot can complete when an obstacle is detected.
+* /robot - THYMIO_ROBOT class abstracting hardware and available behaviors.
+* /sensor - Classes evaluating ground- and range sensors of Thymio II robot.
+* /util - Containing classes that serve the controllers with specific calculations or parameter storage.
+*/ signalers: take care of communication between functions
+
+FILES
+* communication/path_planner_communicator.e: saves the state when the path is found and takes care of publishing the path once it is ready
+* communication/thymio_topics.e: collection of all ros topics
+* /graph_models/grid_builder.e: in this class we compute all the actions to find the path. We read the map, compute the graph and, finally, set up the communciator to publish the path
+* /graph_models/connectivity_strategies/grid_connectivity.e: In this class we specify the connectivity strategies of the node.
+* /graph_search/graph_search.e: deferred class that declares a search function
+* /graph_search/a_star_search.e: A* algorithm implementation. The class was thought to be adaptable to different nodes and the result seems acceptabe, but the implementation turned out to be tough and my code, although roubust enough, is very slow probably because I used complicated structures instead of a hash table
+* /graph_search/comparable_node.e: wrapper to use graph nodes in the heap priority queue
+* /graph_search/euclidian_cost.e: particular instance that computes the euclidian distance of two spatial graph nodes
+* /tasks/path_planner.e: this creates the necessary separate objects and starts the path finder
+
+
+FILES:
+
+* app.e - main application file of the project
+* thymio_app.ecf - Project settings for Eiffel Studio
+
+* /controllers/go_to_goal_controller.e - Specifies all routine details to move the robot to the goal position. Maps the sensor values to the appropiate PID controllers. In charge of the robots behavior when no obstacle detected.
+* /controllers/obstacle_avoidance_controller.e - Specifies all routine details to make the robot avoid and follow outlines of obstacles. Decides which routine should be started when near an obstacle. It contains all possible behaviors the robot can complete when an obstacle is detected.
+* /controllers/pid_controller - Generall PID-controller class with anti-reset-windup. Parameter class for PID-Controller.
+* /controllers/ path_planning_controller.e : controls the path planning task
+* /controllers/ robot_controller.e: controls high level robot tasks
+
+
+-- How it works?
+
+The application creates a ROS node and an instance of THYMIO_ROBOT. This class initializes the robot with all it's actuators, sensors and behaviors. The thimio robot class then starts three cancellable control loops of the ROBOT CONTROLELR class to control three separate tasks: path planning, obstacle avoidance, and go_to_goal. The idea of this structure is to be able to have three units of software without the need to have them communicating directly to each other, in order to improve scalability.
+Given a goal point the, robot controller will first of all read the map and model it as a grid graph. Then, given the starting position, the path planning task will search the graph through A* to find a path. The way this is implemented is through a deferred TASK class that has the three childs aforementioned. When the path is ready, the path planning app publishes on ROS the path and signals, through the PATH_PLANNING_SIGNALER, that the task has been executed. Then, the robot controller allows the GO_TO_GOAL class and the OBSTACLE_AVOIDANCE classes to coexist and ensuring exclusive access to the robot, using a state machine. This is communicated to the three separate loops throu the ROBOT_SIGNALER. When an obstacle is found we avoid it and we discard some points on the path that will be blocked by the obstacle and we attempt to follow the path as much as possible. It must be noted that we were able to merge our A* algorithms and improve upon them: implementing hash tables and the priority queue in the correct way and pairing it with a scaling of the map size we were able to achieve performances that would have allowed us to replan the path quickly.
+
+
+-- Limitations and potential improvements
+
+Currently, the application can not be terminated correctly. The starting of the three tasks is properly handled but we were not able to implement the stop request. having had that we could have improved vastly the switching between tasks from an higher level, using the three task classes as (almost) black boxes.
+Another issue we encountered was handling the parameters passing from different levels: in fact, we still found difficult to implement both reusability and separatness (for example in the path planning) because of lacking in "concurrent thinking". Nevertheless, we believe that the structure has a solid ground base but it still needs refinements and improvements both in terms of simplicity but also in terms of correctness of implementation. While on the previous assignment the material to cover was less and we could improve the code structure, this group assignment required more time to be spent on bug fixing and refactoring errors of the past assignment, leading to a decrease in the code quality for the sake of the functionality.
+
+
+Further potential improvements:
+- A lot of code is really complicated with many if's. This should be torn appart and simplified. Was not possible due to time constraints.
+- More interface safeguard should be written (like ensure, require, etc.).
+- Unit-test should be introduced for the most important classes 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

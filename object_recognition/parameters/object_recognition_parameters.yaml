@@ -1,0 +1,35 @@
+#####paths and topics
+camera_topic: 'camera/depth/points' #string
+request_topic: 'object_recognition_request' #string
+answer_topic: 'object_recognition_answer' #string
+human_counter_topic: 'object_recognition_human_counter' #string
+models_directory_path: '/home/antoine/data/humans' #string
+marker_frame_id: '/camera_depth_optical_frame' #string
+
+#####cloud_filtering::downsample
+voxelGrid_leaf_size: 0.0075 #float
+
+#####cloud_filtering::filter
+passThrough_lower_limit: 0.3 #float
+passThrough_upper_limit: 0.8 #float
+
+#####cloud_segmentation::planar_segmentation
+sacSegmentation_max_iterations: 100 #int
+sacSegmentation_distance_threshold: 0.02 #double
+sacSegmentation_point_ratio: 0.3 #double
+
+#####cloud_segmentation::extract_clusters
+euclideanClusterExtraction_cluster_tolerance: 0.04 #double
+euclideanClusterExtraction_min_cluster_size: 150 #int
+euclideanClusterExtraction_max_cluster_size: 1000 #int
+
+#####spin_image::compute_descriptors
+normalEstimation_radius_search: 0.14 #double
+spinImageEstimation_radius_search: 0.14 #double
+spinImageEstimation_image_width: 8 #int
+
+#####spin_image::recognition
+recognition_threshold: 0.98 #double
+recognition_human_counter_threshold: 200 #int
+recognition_models_descriptors_step: 1 #int
+recognition_current_descriptors_step: 1 #int

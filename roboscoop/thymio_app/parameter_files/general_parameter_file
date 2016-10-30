@@ -1,0 +1,27 @@
+x_start:	1
+y_start:	0.6
+
+x_goal:		1.4
+y_goal:		0.8
+
+x_goal:		1.3
+y_goal:		1
+
+x_goal:		1.4
+y_goal:		1.4
+x_obj:		1.4
+y_obj:		1.4
+
+x_goal:		1.5
+y_goal:		1.5
+
+x_goal:		1.0
+y_goal:		1.7
+x_obj:		1.0
+y_obj:		1.7
+
+
+x_goal:		0.5
+y_goal:		1.5
+x_obj:		0.5
+y_obj:		1.5

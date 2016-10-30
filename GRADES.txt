@@ -1,0 +1,23 @@
+Assignment 1
+---------------------------------
+Demonstration points:		10.0
+Software Quality points:	5.75
+Total points:				15.75
+
+Assignment 2
+--------------------------------
+Demonstration points:		9.8
+Software Quality points:	5.75
+Total points:				15.55
+
+Assignment 3
+---------------------------------
+Demonstration points:		8.4
+Software Quality points:	6.75
+Total points:				15.15
+
+Assignment 4
+--------------------------------
+Demonstration points:		3.0
+Software Quality points:	
+Total points:				

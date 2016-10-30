@@ -1,0 +1,5 @@
+./parameter_files/general_parameter_file
+./parameter_files/go_to_goal_parameter_file
+./parameter_files/obstacle_avoidance_parameter_file
+./parameter_files/path_planning_parameter_file
+./parameter_files/localization_parameter_file

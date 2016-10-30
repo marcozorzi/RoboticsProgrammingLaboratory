@@ -1,0 +1,5 @@
+-------------------- LOCALIZATION_PARAMETERS --------------------
+
+forward_velocity: 0.0
+angular_velocity: 0.3
+object_distance_threshold: 0.15

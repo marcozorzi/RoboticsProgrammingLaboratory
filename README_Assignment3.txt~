@@ -1,0 +1,208 @@
+README - Assignment 3: Object Recognition
+author: Zorzi Marco & Seewer Antoine
+date: 30.11.2015
+
+
+
+-- Functionality
+
+
+The code of this assignment is separated in two distint parts, a Roboscoop application taking care of conveying the robot to goal points and a C++ executable responsible of the object recognition.
+
+- The Roboscoop application (APP):
+
+This application implements a set of 4 tasks for a Thymio Robot which are the following:
+1) planning a path from a start and one or multiple goals location, given a map with known obstacles.
+2) stearing the robot towards the goal, following the calculated path.
+3) avoiding unknown obstacles which are in the way.
+4) requesting via a ROS message an object recognition from the C++ node at some given positions.
+
+The starting and the goal points are given in the global reference frame. The application begins by loading the map and creating a graph related to the map. Each nodes will have an edge with its neighbours only if the neighbour is a free cell (no obstacle). In case of an obstacle, the node will not be connected. Then, we use graph search algorithms to find a path between two nodes: this search is done with the A* (A star) algorithm. Then, the path is published as a series of points which are sequentially used as temporary goal positions by the robot. While following the path, the robot also avoids the obstacles that are not present in the map (unknown obstacles) and request for the object recognition procedure.
+
+- The C++ executable (obstacle_recognition):
+
+This executable start a ROS node which receive the point cloud stream from the Carmine 1.09 sensor and wait for the flag message of the Roboscoop application to process it. To achieve object recognition, the point cloud is at first filtered and segmented and the spin image of the different resulting clusters is then computed to be compared to the precomputed models library. After the matching, a bounding box is diplayed around the recognized object in RViz, which takes a different color for each type of object (human = green, duck = blue and unknown = red) and the flag message is resetted to tell the Roboscoop application that the recognition is finished.
+
+
+
+-- Usage
+
+
+1) Connect the robot and the Carmine 1.09 sensor to the computer by USB (Carmine 1.09 sensor only supports USB 2.0)
+
+2) Start roscore in your terminal:
+
+   roscore
+
+3) Launch the Thymio driver. The required command is:
+   
+   roslaunch thymio_navigation_driver aseba_thymio.launch
+
+4) Run Openni2 as followed:
+
+   roslaunch openni2_launch openni2.launch
+
+5) Start the map:
+
+   rosrun map_server map_server ~/data/testenvironment.yaml
+
+6) Launch the object recognition node with the following command line:
+   
+   roslaunch object_recognition object_recognition.launch
+
+7) Start up Eiffel Studio by the following terminal command:
+   
+   ec -gui
+
+   In the pop up window (alternatively select File/Open) select "add Project" and navigate to /roboscoop/thymio_app/thymio_app.ecf and click "OK". The project loads in Eiffel Studio.
+
+8) Adjust parameters in files inside the folder
+
+   roboscoop/thymio_app/parameter_files
+
+   and save the edited files.
+
+9) Click "Run" in EiffelStudio. The robot will compute the path and drive to the desired goal positions avoiding obstacles.
+
+10) To stop the application press "Stop" in Eiffelstudio.
+
+
+
+-- File/directory structure
+
+- Roboscoop
+
+In the roboscoop directory:
+
+* roboscoop_lib - Library for the THYMIO II robot
+* roboscoop_ros - ROS Library
+* thymio_app: Contains all specific files for the APP
+
+In the roboscoop/thymio_app directory:
+
+FOLDERS
+* /actuator - Classes to control the robots different actuators
+* /behaviours - Specifies all routine details to make the robot avoid and follow outlines of obstacles. Decides which routine should be started when near an obstacle. It contains all possible behaviors the robot can complete when an obstacle is detected.
+* /communication - Class to connect Thymio to ROS and for internal and external communications
+* /controllers - Classes to control the robots position
+* /graph - Classes of behaviors implemented in this project. To each behavior belongs a signaler for specific states of the behavior.
+* /graph/graph_search - Classes to control the robots position
+* /graph/graph_models - Specifies all routine details to move the robot to the goal position. Maps the sensor values to the appropiate PID controllers. In charge of the robots behavior when no obstacle detected.
+* /parameter_files: contains the parameters to pass
+* /parameters: contains the parameter classes
+* /parsers: parsers for classes of different objects
+* /robot - THYMIO_ROBOT class abstracting hardware and available behaviors.
+* /sensor - Classes evaluating ground- and range sensors of Thymio II robot.
+*/ signalers: take care of communication between functions
+* /util - Containing classes that serve the controllers with specific calculations or parameter storage.
+
+FILES
+* app.e - main application file of the project
+* thymio_app.ecf - Project settings for Eiffel Studio
+* /behaviours/go_to_goal_behaviour.e: creates the necessary separate objects and starts the go to goal behaviour
+* /behaviours/mission_planner_behaviour.e: creates the necessary separate objects and starts the mission planner behaviour
+* /behaviours/obstacle_avoidance.e: this creates the necessary separate objects and starts the obstacle avoidance behaviour
+* /behaviours/path_planning.e: this creates the necessary separate objects and starts the path finder
+* /communication/thymio_topics.e: collection of all ROS topics
+* /communication/path_planner_communicator.e: saves the state when the path is found and takes care of publishing the path once it is ready
+* /communication/object_recognition_communicator.e: deal with the communication with the C++ node
+* /controllers/go_to_goal_controller.e - Specifies all routine details to move the robot to the goal position. Maps the sensor values to the appropiate PID controllers. In charge of the robots behavior when no obstacle detected.
+* /controllers/obstacle_avoidance_controller.e - Specifies all routine details to make the robot avoid and follow outlines of obstacles. Decides which routine should be started when near an obstacle. It contains all possible behaviors the robot can complete when an obstacle is detected.
+* /controllers/pid_controller - Generall PID-controller class with anti-reset-windup. Parameter class for PID-Controller.
+* /controllers/ path_planning_controller.e : controls the path planning task
+* /controllers/robot_controller.e: controls high level robot tasks
+* /graph/graph_models/grid_builder.e: in this class we compute all the actions to find the path. We read the map, compute the graph and, finally, set up the communciator to publish the path
+* /graph/graph_models/grid_connectivity.e: In this class we specify the connectivity strategies of the node.
+* /graph/graph_search/graph_search.e: deferred class that declares a search function
+* /graph/graph_search/a_star_search.e: A* algorithm implementation. The class was thought to be adaptable to different nodes and the result seems acceptabe, but the implementation turned out to be tough and my code, although roubust enough, is very slow probably because I used complicated structures instead of a hash table
+* /graph/graph_search/comparable_node.e: wrapper to use graph nodes in the heap priority queue
+* /graph/graph_search/euclidian_cost.e: particular instance that computes the euclidian distance of two spatial graph nodes
+
+
+- C++
+
+In object_recognition:
+* CMakeLists.txt
+* package.xml
+In object_recognition/launcher:
+* object_recognition.launch - the launcher
+In object_recognition/include/object_recognition:
+* assigned_descriptors.h
+* cloud_filtering.h
+* cloud_filtering_parameters.h
+* cloud_segmentation.h
+* cloud_segmentation_parameters.h
+* marker_color.h
+* marker_generator.h
+* model_library.h
+* object_recognition.h
+* parameters.h
+* spin_image.h
+* spin_image_parameters.h
+In object_recognition/src:
+* object_recognition.cpp - the executable
+* cloud_filtering.cpp
+* cloud_segmentation.cpp
+* marker_generator.cpp
+* model_library.cpp
+* spin_image.cpp
+* tf_transform_broadcaster.cpp - separate executable broadcasting tf transform for RViz
+In object_recognition/parameters:
+*object_recognition_parameters.yaml
+
+
+-- How does it work?
+
+- Roboscoop
+
+The Roboscoop application (APP) creates a ROS node and an instance of THYMIO_ROBOT and a PATH PLANNING. The robot class initializes the robot with all it's actuators, sensors and behaviors. 
+First of all the APP parses the parameters from the files and given an array of goals it computes a path that goes through all of them.
+The Thymio robot class then starts two behaviours:
+1) GO_TO_GOAL: follows the path while avoiding obstacles
+2) MISSION_PLANNER: plans and checks the mission and asking other nodes for other tasks (in our case, the object recognition).
+The overall strategy is to stop before reaching the goal to visit in order to have a better shot at object recognition. The mission planner checks the position of the robot and, when required, triggers the object recognition through a boolean messagge appositely created in Eiffel.
+Once the recognition node replies that the recognition is done we move on to the next goal location.
+
+- C++
+
+The launcher file for the object recognition creates two nodes, the one processing the point cloud and a tf transform broadcaster for displaying everything correctly in RViz. The object recognition node receive via callbacks the sensor input and processes it when required from the main Roboscoop application (flag). To do so, it first downsample the cloud, before filtering it using a pass through filter for the depth. After that, it performs a planar segmentation and remove the corresponding points before extracting the clusters of interest. It then computes for each clusters its spin images and match it to the models library which is computed at the creation of the executable object (constructor). Finally it publishes a marker messages of the appropriated color (human = green, duck = blue and unknown = red), before resetting the flag and waiting for the next call.
+
+
+
+-- Limitations and potential improvements
+The C++ node should be made more generic.
+
+For the Eiffel part we focused on improving as much as possible our previous goal while still trying to write decent code for the third assignment.
+The approach was to first cover all the small details covered in the previous feedbacks leaving the biggest chunks that need a lot of work. This should make the job easier for the last assignment. Currently, we have four major points to fix:
+
+1) Obstacle avoidance is still thymio specific.
+2) A star is still not generic
+3) parsers do not handle errors
+4) Mission planner still with too many ifs and unneccessary dependancies
+
+These were the improvements made
+- removed leds from go to goal
+- removed unneccessary dependancies (not all of them but for example the error calculation doesn't require a goal or the odometry)
+- calculations and goal logic moved to the go_to_goal signaler
+- implemented stopping mechanism for both the robot and the path planning.
+- removed sleeps from controllers
+- improved generality of PATH_PLANNER_COMMUNICATOR
+- fixed all notes with real names
+- cleaned and improved comments
+- refactored general parameters
+- cleaned code from unnecessary comments
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

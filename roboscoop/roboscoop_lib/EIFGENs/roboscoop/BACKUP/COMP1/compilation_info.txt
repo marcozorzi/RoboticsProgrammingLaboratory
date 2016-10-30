@@ -1,0 +1,5 @@
+Compiler version: 15.08.9.7862 GPL Edition - linux-x86-64
+Type: Precompile
+batch mode: True
+new session: True
+starting date: 12/17/2015 3:24:26.142 PM

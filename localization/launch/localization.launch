@@ -1,0 +1,19 @@
+<launch>
+	<!-- Load the map -->
+	<node name="map_server" pkg="map_server" type="map_server" args="$(find localization)/data/testenvironment.yaml" />
+
+	<!-- Static transform for the map -->
+	<node name="map_broadcaster" pkg="tf" type="static_transform_publisher" args="0 0 0 0 0 0 /odometry_link /map 100" />
+
+	<!-- Simulate laserscan by depth image. -->
+	<node name="laserscan" pkg="depthimage_to_laserscan" type="depthimage_to_laserscan" args="image:=/camera/depth/image" output="screen" />
+
+	<!-- Start the localization node -->
+	<node name="localization" pkg="localization" type="localization_node" clear_params="true" output="screen" />
+
+	<!-- Start the odometry transform node -->
+	<node name="odometry_transform" pkg="localization" type="odometry_transform_node" />
+
+	<!-- Load the localization parameters -->
+	<rosparam command="load" file="$(find localization)/parameters/localization.yaml" />
+</launch>

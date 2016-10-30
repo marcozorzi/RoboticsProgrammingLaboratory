@@ -1,0 +1,7 @@
+<launch>
+	<!-- Start the object recognition node -->
+	<node name="object_recognition" pkg="object_recognition" type="object_recognition" clear_params="true" output="screen" />
+
+	<!-- Load the object recognition parameters -->
+	<rosparam command="load" file="$(find object_recognition)/parameters/object_recognition_parameters.yaml" />
+</launch>
